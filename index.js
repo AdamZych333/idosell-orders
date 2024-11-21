@@ -1,5 +1,7 @@
 const express = require("express");
 const cron = require("node-cron");
+const db = require("./src/config/database");
+
 const app = express();
 const port = 3000;
 
@@ -14,6 +16,22 @@ app.get("/", (req, res) => {
 	res.send("Hello World!");
 });
 
-app.listen(port, () => {
-	console.log(`App listening on port ${port}`);
-});
+const { OrderModel } = require("./src/models/order");
+const { ProductModel } = require("./src/models/product");
+
+const initApp = async () => {
+	try {
+		await db.authenticate();
+
+		OrderModel.sync({ alter: true });
+		ProductModel.sync({ alter: true });
+
+		app.listen(port, () => {
+			console.log(`App listening on port ${port}`);
+		});
+	} catch (err) {
+		console.error("Unable to connect to the database.");
+	}
+};
+
+initApp();

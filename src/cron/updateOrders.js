@@ -6,6 +6,10 @@ const url = `https://${domain}/api/admin/v3`;
 idosell.auth(apiKey);
 idosell.server(url);
 
+const sequelize = require("../config/database");
+const { OrderModel } = require("../models/order");
+const { ProductModel } = require("../models/product");
+
 async function fetchOrders({ page }) {
 	const params = {
 		resultsLimit: 100,
@@ -25,19 +29,43 @@ async function fetchOrders({ page }) {
 
 function mapOrder(order) {
 	const orderID = order.orderId;
-
 	let orderWorth = 0;
+
 	const products = [];
 	order?.orderDetails?.productsResults?.forEach((product) => {
 		const productID = product.productId;
 		const quantity = product.productQuantity;
 		const price = product.productOrderPrice;
 
-		products.push({ productID, quantity });
 		orderWorth += Math.round(price * quantity * 100) / 100;
+
+		products.push({ orderID, productID, quantity });
 	});
 
-	return { orderID, orderWorth, products };
+	return { orderID, products, orderWorth };
+}
+
+async function updateOrders(newOrders) {
+	console.log({ newOrders });
+	const transaction = await sequelize.transaction();
+	try {
+		const newProducts = newOrders.flatMap((o) => o.products);
+
+		await OrderModel.bulkCreate(newOrders, {
+			fields: ["orderID", "orderWorth"],
+			updateOnDuplicate: ["orderID", "orderWorth"],
+		});
+
+		await ProductModel.bulkCreate(newProducts, {
+			fields: ["productID", "quantity", "orderID"],
+			updateOnDuplicate: ["productID", "quantity", "orderID"],
+		});
+
+		await transaction.commit();
+	} catch (err) {
+		await transaction.rollback();
+		console.error("Update Orders", { err });
+	}
 }
 
 exports.setUpOrderUpdate = async () => {
@@ -45,7 +73,7 @@ exports.setUpOrderUpdate = async () => {
 
 	let page = 1;
 	let pageLimit = 1;
-	const orders = [];
+	const newOrders = [];
 	do {
 		const pageData = await fetchOrders({ page });
 		if (!pageData) {
@@ -53,8 +81,8 @@ exports.setUpOrderUpdate = async () => {
 		}
 		pageLimit = pageData.resultsNumberPage;
 
-		orders.push(...(pageData.Results?.map(mapOrder) || []));
+		newOrders.push(...(pageData.Results?.map(mapOrder) || []));
 	} while (page++ < pageLimit);
 
-	console.log({ orders });
+	await updateOrders(newOrders);
 };
