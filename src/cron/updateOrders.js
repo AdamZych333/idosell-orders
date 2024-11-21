@@ -10,6 +10,8 @@ const sequelize = require("../config/database");
 const { OrderModel } = require("../models/order");
 const { ProductModel } = require("../models/product");
 
+const { mapApiToModel } = require("../services/orderService");
+
 async function fetchOrders({ page }) {
 	const params = {
 		resultsLimit: 100,
@@ -25,24 +27,6 @@ async function fetchOrders({ page }) {
 		console.error(err);
 		return null;
 	}
-}
-
-function mapOrder(order) {
-	const orderID = order.orderId;
-	let orderWorth = 0;
-
-	const products = [];
-	order?.orderDetails?.productsResults?.forEach((product) => {
-		const productID = product.productId;
-		const quantity = product.productQuantity;
-		const price = product.productOrderPrice;
-
-		orderWorth += Math.round(price * quantity * 100) / 100;
-
-		products.push({ orderID, productID, quantity });
-	});
-
-	return { orderID, products, orderWorth };
 }
 
 async function updateOrders(newOrders) {
@@ -81,7 +65,7 @@ exports.setUpOrderUpdate = async () => {
 		}
 		pageLimit = pageData.resultsNumberPage;
 
-		newOrders.push(...(pageData.Results?.map(mapOrder) || []));
+		newOrders.push(...(pageData.Results?.map(mapApiToModel) || []));
 	} while (page++ < pageLimit);
 
 	await updateOrders(newOrders);

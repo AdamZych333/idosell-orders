@@ -12,9 +12,9 @@ setUpOrderUpdate();
 const { authMiddleware } = require("./src/middlewares/authMiddleware");
 app.use(authMiddleware);
 
-app.get("/", (req, res) => {
-	res.send("Hello World!");
-});
+const routeOptions = { app };
+
+require("./src/routes/orderRoutes")(routeOptions);
 
 const { OrderModel } = require("./src/models/order");
 const { ProductModel } = require("./src/models/product");

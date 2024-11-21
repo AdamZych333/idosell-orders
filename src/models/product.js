@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const ProductModel = sequelize.define(
-	"Product",
+	"product",
 	{
 		productID: {
 			type: DataTypes.STRING,
