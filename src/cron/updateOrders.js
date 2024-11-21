@@ -37,7 +37,7 @@ async function updateOrders(newOrders) {
 
 		await OrderModel.bulkCreate(newOrders, {
 			fields: ["orderID", "orderWorth"],
-			updateOnDuplicate: ["orderID", "orderWorth"],
+			updateOnDuplicate: ["orderWorth"],
 		});
 
 		await ProductModel.bulkCreate(newProducts, {

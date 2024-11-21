@@ -1,26 +1,9 @@
-const { Op } = require("sequelize");
-
 const { OrderModel } = require("../models/order");
 const { ProductModel } = require("../models/product");
-
-const { mapModelToSummary } = require("../services/orderService");
+const { buildListSearch } = require("../services/orderService");
 
 exports.listOrders = async function (req, res) {
-	const minWorth = Number(req.query.minWorth);
-	const maxWorth = Number(req.query.maxWorth);
-
-	const where = {
-		orderWorth: {
-			[Op.and]: {},
-		},
-	};
-
-	if (!isNaN(minWorth)) {
-		where.orderWorth[Op.and][Op.gt] = minWorth;
-	}
-	if (!isNaN(maxWorth)) {
-		where.orderWorth[Op.and][Op.lt] = maxWorth;
-	}
+	const where = buildListSearch(req);
 
 	try {
 		const orders = await OrderModel.findAll({
@@ -34,6 +17,27 @@ exports.listOrders = async function (req, res) {
 		});
 
 		res.send({ orders });
+	} catch (err) {
+		res.status(500);
+		res.send(err);
+	}
+};
+
+exports.getOrder = async function (req, res) {
+	const orderID = req.params.orderId;
+
+	try {
+		const order = await OrderModel.findOne({
+			where: { orderID },
+			include: [
+				{
+					model: ProductModel,
+					attributes: ["productID", "quantity"],
+				},
+			],
+		});
+
+		res.send(order);
 	} catch (err) {
 		res.status(500);
 		res.send(err);

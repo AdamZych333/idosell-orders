@@ -14,6 +14,7 @@ const ProductModel = sequelize.define(
 		},
 	},
 	{
+		indexes: [{ unique: true, fields: ["orderID", "productID"] }],
 		createdAt: false,
 		updatedAt: false,
 	}

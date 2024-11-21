@@ -1,3 +1,5 @@
+const { Op } = require("sequelize");
+
 exports.mapApiToModel = function (order) {
 	const orderID = order.orderId;
 	let orderWorth = 0;
@@ -16,20 +18,22 @@ exports.mapApiToModel = function (order) {
 	return { orderID, products, orderWorth };
 };
 
-exports.mapModelToSummary = function (order) {
-	let orderWorth = 0;
+exports.buildListSearch = function (req) {
+	const minWorth = Number(req.query.minWorth);
+	const maxWorth = Number(req.query.maxWorth);
 
-	const products = order.products.map((p) => {
-		const price = p.orderProduct?.price || 0;
-		const quantity = p.orderProduct?.quantity || 0;
+	const where = {
+		orderWorth: {
+			[Op.and]: {},
+		},
+	};
 
-		orderWorth += price * quantity;
+	if (!isNaN(minWorth)) {
+		where.orderWorth[Op.and][Op.gte] = minWorth;
+	}
+	if (!isNaN(maxWorth)) {
+		where.orderWorth[Op.and][Op.lte] = maxWorth;
+	}
 
-		return {
-			productID: p.productID,
-			quantity,
-		};
-	});
-
-	return { orderID: order.orderID, orderWorth, products };
+	return where;
 };

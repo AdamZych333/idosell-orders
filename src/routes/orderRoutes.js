@@ -4,4 +4,6 @@ module.exports = function (options) {
 	const orderController = require("../controllers/orderController");
 
 	app.route("/order").get(orderController.listOrders);
+
+	app.route("/order/:orderId").get(orderController.getOrder);
 };
