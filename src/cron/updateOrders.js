@@ -30,7 +30,6 @@ async function fetchOrders({ page }) {
 }
 
 async function updateOrders(newOrders) {
-	console.log({ newOrders });
 	const transaction = await sequelize.transaction();
 	try {
 		const newProducts = newOrders.flatMap((o) => o.products);
@@ -53,8 +52,6 @@ async function updateOrders(newOrders) {
 }
 
 exports.setUpOrderUpdate = async () => {
-	console.log("set up order update");
-
 	let page = 1;
 	let pageLimit = 1;
 	const newOrders = [];

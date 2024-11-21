@@ -6,8 +6,8 @@ const app = express();
 const port = 3000;
 
 const { setUpOrderUpdate } = require("./src/cron/updateOrders");
-cron.schedule("0 0 * * *", setUpOrderUpdate);
 setUpOrderUpdate();
+cron.schedule("0 0 * * *", setUpOrderUpdate);
 
 const { authMiddleware } = require("./src/middlewares/authMiddleware");
 app.use(authMiddleware);

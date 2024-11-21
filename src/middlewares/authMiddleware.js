@@ -15,7 +15,7 @@ function extractUserFromHeader(header) {
 }
 
 function isValidUser(user) {
-	return user.username === VALID_USERNAME && user.password === VALID_PASSWORD;
+	return user && user.username === VALID_USERNAME && user.password === VALID_PASSWORD;
 }
 
 exports.authMiddleware = function (req, res, next) {
